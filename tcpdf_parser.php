@@ -86,7 +86,12 @@ class TCPDF_PARSER {
 		'ignore_filter_decoding_errors' => true,
 		'ignore_missing_filter_decoders' => true,
 	);
-
+	
+	/**
+	 * Last offset - Integer.
+	 * @private
+	 */
+	private $lastOffsetValue;
 // -----------------------------------------------------------------------------
 
 	/**
@@ -495,6 +500,13 @@ class TCPDF_PARSER {
 	 * @since 1.0.000 (2011-06-20)
 	 */
 	protected function getRawObject($offset=0) {
+		
+		if ($offset == $this->lastOffsetValue) {
+			throw new Exception('Found recuring loop in offset of pdf file that couldn\'t be handled!');
+		}
+
+		$this->lastOffsetValue = $offset;
+		
 		$objtype = ''; // object type to be returned
 		$objval = ''; // object value to be returned
 		// skip initial white space chars: \x00 null (NUL), \x09 horizontal tab (HT), \x0A line feed (LF), \x0C form feed (FF), \x0D carriage return (CR), \x20 space (SP)
