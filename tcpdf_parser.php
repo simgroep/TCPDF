@@ -92,6 +92,20 @@ class TCPDF_PARSER {
 	 * @private
 	 */
 	private $lastOffsetValue;
+
+	/**
+	 * last xref number
+	 * @var integer
+	 * @private
+	 */
+	private $lastXrefNumber;
+
+	/**
+	 * last stream xref number
+	 * @var integer
+	 * @private
+	 */
+	private $lastXrefStreamNumber;
 // -----------------------------------------------------------------------------
 
 	/**
@@ -112,7 +126,8 @@ class TCPDF_PARSER {
 		if (($trimpos = strpos($data, '%PDF-')) === FALSE) {
 			$this->Error('Invalid PDF data: missing %PDF header.');
 		}
-		// get PDF content string
+		// get PDF content string:115
+		
 		$this->pdfdata = substr($data, $trimpos);
 		// get length
 		$pdflen = strlen($this->pdfdata);
@@ -214,6 +229,10 @@ class TCPDF_PARSER {
 	 * @since 1.0.000 (2011-06-20)
 	 */
 	protected function decodeXref($startxref, $xref=array()) {
+		if ($this->lastXrefNumber === $startxref) {
+			return $xref;
+		}
+		$this->lastXrefNumber = $startxref;
 		$startxref += 4; // 4 is the length of the word 'xref'
 		// skip initial white space chars: \x00 null (NUL), \x09 horizontal tab (HT), \x0A line feed (LF), \x0C form feed (FF), \x0D carriage return (CR), \x20 space (SP)
 		$offset = $startxref + strspn($this->pdfdata, "\x00\x09\x0a\x0c\x0d\x20", $startxref);
@@ -286,6 +305,10 @@ class TCPDF_PARSER {
 	 * @since 1.0.003 (2013-03-16)
 	 */
 	protected function decodeXrefStream($startxref, $xref=array()) {
+		if ($this->lastXrefStreamNumber === $startxref) {
+			return $xref;
+		}
+		$this->lastXrefStreamNumber = $startxref;
 		// try to read Cross-Reference Stream
 		$xrefobj = $this->getRawObject($startxref);
 		$xrefcrs = $this->getIndirectObject($xrefobj[1], $startxref, true);
